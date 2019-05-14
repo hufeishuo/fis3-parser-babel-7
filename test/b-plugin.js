@@ -45,7 +45,7 @@ traverse.default(newAST, {
 						raCallback = n.node.expression.arguments[1];
 					}
 
-					requires.reverse().forEach((n, i) => {
+					requires.forEach((n, i) => {
 						let args = n.get('arguments');
 						args && raArgs.elements.unshift(args[0].node);
 						let varName = 'xx' + i;

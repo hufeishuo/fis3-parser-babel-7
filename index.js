@@ -14,67 +14,83 @@ const config = {
 						'Program': {
 							enter(path, state) {
 								ra = null;
-								// requires = [];
+								requires = [];
 							},
 							exit(path, state) {
-								path.traverse({
-									'CallExpression': {
-										enter(path) {
-											if (path.get('callee').node.name === 'require') {
-												console.log(path.get('arguments')[0].node.value);
-												requires.push(path);
-											}
-									}
-									}
-								});
-								if (requires.length === 0) {
-									return false;
-								}
+								// path.traverse({
+								// 	'CallExpression': {
+								// 		enter(path) {
+								// 			if (path.get('callee').node.name === 'require') {
+								// 				console.log(path.get('arguments')[0].node.value);
+								// 				requires.push(path);
+								// 			}
+								// 	}
+								// 	}
+								// });
+								// if (requires.length === 0) {
+								// 	return false;
+								// }
 								
-								const last = path.get('body').pop();
+                                // const last = path.get('body').pop();
+                                if(/login\.html/.test(state.filename)){
+                                    const cur = new Date();
+                                    require('fs').writeFileSync((cur.getMinutes() + '-' + cur.getSeconds()) + '.json', JSON.stringify(state.file.ast));
+                                     
+                                }
+                                           
 
-								let hasRA = path.get('body').some((n) => {
-									if (
-										n.type === 'ExpressionStatement' &&
-										n.node.expression.type === 'CallExpression' &&
-										n.node.expression.callee &&
-										n.node.expression.callee.type === 'MemberExpression' &&
-										n.node.expression.callee.object.name === 'require' &&
-										n.node.expression.callee.property.name === 'async'
-									) {
-										ra = n;
+								// let hasRA = path.get('body').some((n) => {
+								// 	if (
+								// 		n.type === 'ExpressionStatement' &&
+								// 		n.node.expression.type === 'CallExpression' &&
+								// 		n.node.expression.callee &&
+								// 		n.node.expression.callee.type === 'MemberExpression' &&
+								// 		n.node.expression.callee.object.name === 'require' &&
+								// 		n.node.expression.callee.property.name === 'async'
+								// 	) {
+								// 		ra = n;
+										
+								// 	}
+                                // });
+                                //const cur = new Date();
+                                //require('fs').writeFileSync((cur.getMinutes() + '-' + cur.getSeconds()) + '.json', JSON.stringify(state.file.ast));
+                                        
+                                // if( false && hasRA){
+                                //     let n = ra;
 
-										let raArgs = [],
-											raCallback = null;
-										if (n.node.expression.arguments[0].type === 'ArrayExpression') {
-											raArgs = n.node.expression.arguments[0];
-											raCallback = n.node.expression.arguments[1];
-										}
+								// 		let raArgs = [],
+                                //         raCallback = null;
+                                //     if ( n.node.expression.arguments[0].type === 'ArrayExpression') {
+                                //         raArgs = n.node.expression.arguments[0];
+                                //         raCallback = n.node.expression.arguments[1];
+                                        
+                                //         requires.reverse().forEach((n, i) => {
+                                //             let args = n.get('arguments');
+                                //             args && raArgs.elements.unshift(args[0].node);
+                                //             let varName = 'xx' + i;
+                                //             console.log(varName);
+                                //             const varObj = {
+                                //                 type: 'Identifier',
+                                //                 name: varName
+                                //             };
 
-										requires.reverse().forEach((n, i) => {
-											let args = n.get('arguments');
-											args && raArgs.elements.unshift(args[0].node);
-											let varName = 'xx' + i;
-											console.log(varName);
-											const varObj = {
-												type: 'Identifier',
-												name: varName
-											};
+                                //             raCallback.params.unshift(varObj);
 
-											raCallback.params.unshift(varObj);
+                                //             n.replaceWith(varObj);
+                                //         });
 
-											n.replaceWith(varObj);
-										});
+                                //         const box = ra.get('body');
 
-										const box = ra.get('body');
+                                //         const allPrevs = ra.getAllPrevSiblings();
+                                //         const cur = new Date();
+                                //         require('fs').writeFileSync((cur.getMinutes() + '-' + cur.getSeconds()) + '.json', JSON.stringify(state.file.ast));
+                                //         allPrevs.reverse().forEach((n) => {
+                                //             raCallback.body.body.unshift(n.node);
+                                //             n.remove();
+                                //         });
+                                //     }
 
-										const allPrevs = ra.getAllPrevSiblings();
-										allPrevs.reverse().forEach((n) => {
-											raCallback.body.body.unshift(n.node);
-											n.remove();
-										});
-									}
-								});
+                                // }
 							}
 						}
 					}
@@ -146,31 +162,4 @@ function mergeConf({ presets = [], plugins = [], sourceMap }, file) {
 			plugins: config.plugins.concat(plugins)
 		}
 	);
-}
-
-function babelPlugin() {
-	return {
-		visitor: {
-			Identifier(path) {
-				// enter(path) {
-				if (
-					path.isIdentifier({ name: 'require' }) &&
-					path.parent.type === 'MemberExpression' &&
-					path.parent.property &&
-					path.parent.property.name === 'async'
-				) {
-					const p = path.findParent((path) => path.isExpressionStatement());
-					const callEx = path.findParent((path) => path.isCallExpression());
-					const fn = callEx.get('arguments').pop();
-					let siblings = p.getAllPrevSiblings();
-					console.log('ssssss');
-					siblings.reverse().forEach((n) => {
-						fn.get('body').unshiftContainer('body', n.node);
-						n.remove();
-					});
-				}
-				// }
-			}
-		}
-	};
 }
