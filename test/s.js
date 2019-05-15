@@ -1,13 +1,9 @@
-
-
-var a = 1;
-var b = a;
-require.async(['koa-server:test/es2015'], function (a) {
-    var p = Promise.resolve(1);
-    p.then(function (d) {
+require.async(['/components/index.js'], function(){
+  const p = Promise.resolve(1);
+  p.then(d=>{
       console.log(d);
-    }).finally(function () {
-      console.log('finally|n\n');
-    });
-    console.log('test script end!');
+  })
+  .finally(()=>{
+      console.log('finally');
+  });
 });
