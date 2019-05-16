@@ -1,4 +1,6 @@
 const babel = require('@babel/core');
+const parser = require('@babel/parser');
+const traverse = require('@babel/traverse');
 
 const extend = require('extend');
 
@@ -30,18 +32,28 @@ const config = {
 		]
 	],
 	sourceMap: undefined,
-	ast: false
+	ast: true
 };
+
+const requireAsyncWrap = require('../babel-plugin-stop-hosit/index.js');
 
 module.exports = function(content, file, options) {
 	const conf = mergeConf(options, file);
-	return babel.transform(content, conf).code;
+	const result = babel.transformSync(content, conf);
+	if (file.isPartial) {
+		// const ast = parser.parse(result.code);
+		// traverse.default(ast, requireAsyncWrap.visitor);
+		// return babel.transformFromAstSync(ast).code;
+		return result.code;
+	} else {
+		return result.code;
+	}
 };
 
 function mergeConf({ presets = [], plugins = [], sourceMap }, file) {
 	const conf = extend(
 		{
-			filename: file.subpath,
+			// filename: file.subpath,
 			sourceFileName: file.basename
 		},
 		config,
@@ -56,7 +68,7 @@ function mergeConf({ presets = [], plugins = [], sourceMap }, file) {
 		const extra = require('../babel-plugin-stop-hosit/index.js');
 		conf.presets.unshift({
 			plugins: [ extra ]
-		})
+		});
 	}
 	return conf;
 }
