@@ -103,17 +103,22 @@ function requireAsync(ast) {
 					if (hasRA) {
 						let raArgs = [],
 							raCallback = null;
-						if (ra.node.expression.arguments[0].type === 'ArrayExpression') {
+						// if (ra.node.expression.arguments[0].type === 'ArrayExpression') {
 							raArgs = ra.node.expression.arguments[0];
 							raCallback = ra.node.expression.arguments[1];
-						}
+
+							if(raArgs.type === 'StringLiteral'){
+								console.log(raArgs, raArgs.type);
+								raArgs.replaceWith(t.arrayExpression([raArgs]));
+							}
+						// }
 
 						requires.reverse().forEach((n, i) => {
 							let args = n.get('arguments');
 							args && raArgs.elements.unshift(args[0].node);
 
 							const varObj = path.scope.generateUidIdentifier('_require');
-
+							console.log(raCallback.params);
 							raCallback.params.unshift(varObj);
 
 							n.replaceWith(varObj);

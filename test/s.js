@@ -1,10 +1,10 @@
-require.async(["node_modules/@babel/runtime-corejs3/core-js-stable/promise",
-"booobkbklksasakdt",
-"node_modules/@babel/runtime-corejs3/helpers/interopRequireDefault"
-], function (_require, _require2) {
-    var _interopRequireDefault = _require2;
-  
-    var _promise = _interopRequireDefault(_require);
-  
-    _promise.default.resolve('a');
-  });
+require.async('test/es2015.js', ()=>{
+  const p = Promise.resolve(1);
+  p.then(d=>{
+      console.log(d);
+  })
+  .finally(()=>{
+      console.log('finally|n\n');
+  })
+  console.log('test script end!');
+})
