@@ -108,8 +108,7 @@ function requireAsync(ast) {
 							raCallback = ra.node.expression.arguments[1];
 
 							if(raArgs.type === 'StringLiteral'){
-								console.log(raArgs, raArgs.type);
-								raArgs.replaceWith(t.arrayExpression([raArgs]));
+								raArgs = ra.node.expression.arguments[0] = t.arrayExpression([raArgs]);
 							}
 						// }
 
@@ -118,7 +117,6 @@ function requireAsync(ast) {
 							args && raArgs.elements.unshift(args[0].node);
 
 							const varObj = path.scope.generateUidIdentifier('_require');
-							console.log(raCallback.params);
 							raCallback.params.unshift(varObj);
 
 							n.replaceWith(varObj);
