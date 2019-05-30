@@ -24,10 +24,10 @@ const config = {
 		[
 			'@babel/plugin-transform-runtime',
 			{
-				corejs: 3, // 默认值，可以不写
-				helpers: true, // 默认，可以不写
-				regenerator: true, // 通过 preset-env 已经使用了全局的 regeneratorRuntime, 不再需要 transform-runtime 提供的 不污染全局的 regeneratorRuntime
-				useESModules: false // 使用 es modules helpers, 减少 commonJS 语法代码
+				corejs: 3, 
+				helpers: true,
+				regenerator: true, 
+				useESModules: false 
 			}
 		]
 	],
@@ -38,7 +38,7 @@ const config = {
 module.exports = function (content, file, options) {
 	const conf = mergeConf(options, file);
 	const result = babel.transformSync(content, conf);
-	if (file.isPartial) { // 处理html,vm中的script脚本
+	if (options.async) { // 处理html,vm中的script脚本
 		requireAsync(result.ast); // 处理<script>中的require
 		return babel.transformFromAstSync(result.ast).code
 	} else {
