@@ -1,17 +1,19 @@
 const babel = require('@babel/core');
 const t = require('@babel/types');
-const { default: traverse } = require("@babel/traverse");
+const {
+	default: traverse
+} = require("@babel/traverse");
 
-const extend = require('extend');
+const presetEnv = require("@babel/preset-env");
+const transformRuntime = require("@babel/plugin-transform-runtime");
 
-let requires = [];
-let ra = null;
+
 const config = {
 	presets: [
 		[
-			'@babel/preset-env',
+			presetEnv,
 			{
-				debug: true,
+				debug: false,
 				useBuiltIns: false,
 				targets: {
 					// The % refers to the global coverage of users from browserslist
@@ -22,12 +24,12 @@ const config = {
 	],
 	plugins: [
 		[
-			'@babel/plugin-transform-runtime',
+			transformRuntime,
 			{
-				corejs: 3, 
+				corejs: 3,
 				helpers: true,
-				regenerator: true, 
-				useESModules: false 
+				regenerator: true,
+				useESModules: false
 			}
 		]
 	],
@@ -35,34 +37,61 @@ const config = {
 	ast: true
 };
 
+/** 
+ * options:{
+ * 	sourceMap: false/'inline'/'both'
+ * 	debug: false, Boolean
+ * 	targets: [], Array
+ * 	presets:
+ *  plugins:
+ * } 
+ */
+function mergeConf(options, file) {
+	const {
+		presets = [],
+			plugins = [],
+			sourceMap
+	} = options;
+
+	// 是否开启debug模式
+	config.presets[0][1].debug = options.debug || false;
+
+	// 浏览器兼容列表
+	if (options.targets) {
+		config.presets[0][1].targets = options.targets;
+	}
+	const conf = fis.util.extend({
+			sourceFileName: file.basename // sourcemap filename
+		},
+		config, {
+			sourceMap, // 是否开启sourceMap
+			presets: config.presets.concat(presets),
+			plugins: config.plugins.concat(plugins)
+		}
+	);
+	
+	return conf;
+}
+
 module.exports = function (content, file, options) {
 	const conf = mergeConf(options, file);
 	const result = babel.transformSync(content, conf);
-	if (options.async) { // 处理html,vm中的script脚本
-		requireAsync(result.ast); // 处理<script>中的require
+	if (options.async) {
+		requireAsync(result.ast); // 处理html,vm中的script脚本中的require
 		return babel.transformFromAstSync(result.ast).code
 	} else {
 		return result.code;
 	}
 };
 
-function mergeConf({ presets = [], plugins = [], sourceMap }, file) {
-	const conf = extend(
-		{
-			sourceFileName: file.basename
-		},
-		config,
-		{
-			sourceMap,
-			presets: config.presets.concat(presets),
-			plugins: config.plugins.concat(plugins)
-		}
-	);
-	return conf;
-}
 
 
+
+// 采用babel的 traverse 进行AST的遍历，并修改对应的 Node
 function requireAsync(ast) {
+
+	let requires = [];
+	let ra = null;
 	const collectRequire = {
 		CallExpression: {
 			exit(path) {
@@ -82,7 +111,7 @@ function requireAsync(ast) {
 			exit(path, state) {
 				path.traverse(collectRequire);
 
-				if (requires.length > 0) { 
+				if (requires.length > 0) {
 
 					// 检查是否已经存在require.async
 					let hasRA = path.get('body').some((n) => {
@@ -104,12 +133,12 @@ function requireAsync(ast) {
 						let raArgs = [],
 							raCallback = null;
 						// if (ra.node.expression.arguments[0].type === 'ArrayExpression') {
-							raArgs = ra.node.expression.arguments[0];
-							raCallback = ra.node.expression.arguments[1];
+						raArgs = ra.node.expression.arguments[0];
+						raCallback = ra.node.expression.arguments[1];
 
-							if(raArgs.type === 'StringLiteral'){
-								raArgs = ra.node.expression.arguments[0] = t.arrayExpression([raArgs]);
-							}
+						if (raArgs.type === 'StringLiteral') {
+							raArgs = ra.node.expression.arguments[0] = t.arrayExpression([raArgs]);
+						}
 						// }
 
 						requires.reverse().forEach((n, i) => {

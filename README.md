@@ -1,7 +1,27 @@
-## fis3-parser-babel-7.x
+## fis3-parser-babel-7
 
-A parser that transform es2015+ to es5 by babel7 for fis3. 
+基于fis3，利用babel7将项目中代码转成es2015的写法. 
 
 
-*??7.4版本中，preset-env/plugin-transform-runtime的之间的配置项关系*
-*?? assertCallExpression应该可以用来帮助定位节点，比根据条件手动判断要好一些。*
+## 安装
+
+``` shell
+npm install -g fis3-parser-babel-7
+```
+
+## 用法
+
+在`okay-conf.js`/`fis-conf.js`中添加如下配置
+
+``` js
+fis.match('/**.es6', {
+    parser: fis.plugin('babel-7', {
+        targets: ['defaults', 'chrome >= 49', 'ie > 8', 'edge > 11', 'safari > 9', 'not op_mini all'],
+        // 规则参考https://github.com/browserslist/browserslist
+        debug: false, // Boolean 是否开启preset-env的调试模式，会输出针对targets做的一些配置
+        sourceMap: false, //可选值有三个 false, 'inline', 'both' 
+        presets: [], // Array, 遵循@babel/core 中 option的写法
+        plugins: [], // Array, 遵循@babel/core 中 option的写法
+    })
+})
+```
